@@ -3,6 +3,14 @@ dist
 build
 coverage
 .env
+.env.*
+!.env.example
+!.env.test
 .DS_Store
 .idea
 .vscode
+.svelte-kit
+.output
+*.local
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
