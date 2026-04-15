@@ -1,8 +1,17 @@
-export interface ExaggerateResponse {
-  exaggerated: string;
+export interface ExaggerationStyles {
+  basico: string;
+  corporativo: string;
+  mamador: string;
+  consultor_mckinsey: string;
 }
 
-export async function exaggerate(description: string): Promise<string> {
+export interface ExaggerateResponse {
+  exaggerations: ExaggerationStyles;
+}
+
+export async function exaggerate(
+  description: string
+): Promise<ExaggerationStyles> {
   const res = await fetch("/api/exaggerate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -15,5 +24,5 @@ export async function exaggerate(description: string): Promise<string> {
   }
 
   const data: ExaggerateResponse = await res.json();
-  return data.exaggerated;
+  return data.exaggerations;
 }

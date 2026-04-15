@@ -2,8 +2,15 @@ export interface ExaggerateRequest {
   description: string;
 }
 
+export interface ExaggerationStyles {
+  basico: string;
+  corporativo: string;
+  mamador: string;
+  consultor_mckinsey: string;
+}
+
 export interface ExaggerateResponse {
-  exaggerated: string;
+  exaggerations: ExaggerationStyles;
 }
 
 export interface ErrorResponse {

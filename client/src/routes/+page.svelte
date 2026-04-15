@@ -3,18 +3,18 @@
   import ExampleCards from "$lib/components/ExampleCards.svelte";
   import ExaggerationInput from "$lib/components/ExaggerationInput.svelte";
   import ExaggerationResult from "$lib/components/ExaggerationResult.svelte";
-  import { exaggerate } from "$lib/api";
+  import { exaggerate, type ExaggerationStyles } from "$lib/api";
 
-  let result = $state("");
+  let exaggerations = $state<ExaggerationStyles | null>(null);
   let isLoading = $state(false);
   let error = $state<string | null>(null);
 
   async function handleSubmit(description: string) {
     isLoading = true;
     error = null;
-    result = "";
+    exaggerations = null;
     try {
-      result = await exaggerate(description);
+      exaggerations = await exaggerate(description);
     } catch (e) {
       error = (e as Error).message;
     } finally {
@@ -27,6 +27,6 @@
 
 <div class="space-y-8">
   <ExaggerationInput onsubmit={handleSubmit} disabled={isLoading} />
-  <ExaggerationResult {result} {isLoading} {error} />
+  <ExaggerationResult {exaggerations} {isLoading} {error} />
   <ExampleCards />
 </div>

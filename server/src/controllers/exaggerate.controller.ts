@@ -27,8 +27,8 @@ export async function exaggerateController(
       return;
     }
 
-    const exaggerated = await exaggerateDescription(description.trim());
-    res.json({ exaggerated });
+    const exaggerations = await exaggerateDescription(description.trim());
+    res.json({ exaggerations });
   } catch (error) {
     next(error);
   }

@@ -1,10 +1,24 @@
 import OpenAI from "openai";
 import { config } from "../config/index.js";
+import type { ExaggerationStyles } from "../types/index.js";
 
-const SYSTEM_PROMPT = `Eres el Capitán Usopp de One Piece, pero trabajas en cultura corporativa de LinkedIn.
-Toma la descripción laboral humilde del usuario y reescríbela como un logro absurdamente exagerado para LinkedIn.
-Usa buzzwords corporativos, infla cada logro, y hazlo sonar como si hubieran salvado la empresa.
-Responde SOLO con el texto exagerado, sin explicaciones ni formato extra. Máximo 2-3 oraciones.`;
+const SYSTEM_PROMPT = `Eres un generador de exageraciones de LinkedIn inspirado en el Capitán Usopp de One Piece.
+Toma la descripción humilde del usuario y genera CUATRO versiones con distinto nivel de exageración.
+
+Responde SIEMPRE con un JSON válido con estas claves exactas:
+- "basico": versión levemente inflada, creíble (nivel 2/10). 1 oración.
+- "corporativo": estilo LinkedIn típico, con buzzwords moderados (nivel 5/10). 1-2 oraciones.
+- "mamador": absurdamente exagerado, hace sonar como si hubieras salvado la empresa (nivel 8/10). 2-3 oraciones.
+- "consultor_mckinsey": insoportablemente pomposo, estilo consultor que vende humo, con métricas inventadas y framework names ridículos (nivel 10/10). 2-3 oraciones.
+
+NO incluyas explicaciones ni texto fuera del JSON. SOLO el JSON.`;
+
+const STYLE_KEYS = [
+  "basico",
+  "corporativo",
+  "mamador",
+  "consultor_mckinsey",
+] as const;
 
 let client: OpenAI | null = null;
 
@@ -20,22 +34,31 @@ function getClient(): OpenAI {
 
 export async function exaggerateDescription(
   description: string
-): Promise<string> {
+): Promise<ExaggerationStyles> {
   const openai = getClient();
 
   const completion = await openai.chat.completions.create({
     model: config.llmModel || "gpt-4o-mini",
-    max_tokens: 300,
+    max_tokens: 800,
+    response_format: { type: "json_object" },
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: description },
     ],
   });
 
-  const content = completion.choices[0]?.message?.content;
-  if (!content) {
+  const raw = completion.choices[0]?.message?.content;
+  if (!raw) {
     throw new Error("Respuesta inesperada del LLM");
   }
 
-  return content.trim();
+  const parsed = JSON.parse(raw) as Partial<ExaggerationStyles>;
+
+  for (const key of STYLE_KEYS) {
+    if (typeof parsed[key] !== "string" || !parsed[key]?.trim()) {
+      throw new Error(`El LLM no devolvió el estilo "${key}"`);
+    }
+  }
+
+  return parsed as ExaggerationStyles;
 }

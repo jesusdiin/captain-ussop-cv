@@ -1,15 +1,32 @@
 <script lang="ts">
+  import type { ExaggerationStyles } from "$lib/api";
+
+  type StyleKey = keyof ExaggerationStyles;
+
   interface Props {
-    result: string;
+    exaggerations: ExaggerationStyles | null;
     isLoading: boolean;
     error: string | null;
   }
 
-  let { result, isLoading, error }: Props = $props();
+  const tabs: { key: StyleKey; label: string; level: number }[] = [
+    { key: "basico", label: "Básico", level: 2 },
+    { key: "corporativo", label: "Corporativo", level: 5 },
+    { key: "mamador", label: "Mamador", level: 8 },
+    { key: "consultor_mckinsey", label: "McKinsey", level: 10 },
+  ];
+
+  let { exaggerations, isLoading, error }: Props = $props();
+  let activeTab = $state<StyleKey>("corporativo");
   let copied = $state(false);
 
+  const activeText = $derived(
+    exaggerations ? exaggerations[activeTab] : ""
+  );
+
   async function copyToClipboard() {
-    await navigator.clipboard.writeText(result);
+    if (!activeText) return;
+    await navigator.clipboard.writeText(activeText);
     copied = true;
     setTimeout(() => (copied = false), 2000);
   }
@@ -25,18 +42,42 @@
   <div class="rounded-xl border border-red-800 bg-red-900/20 p-6">
     <p class="text-red-400 text-sm">{error}</p>
   </div>
-{:else if result}
-  <div class="rounded-xl border border-amber-700 bg-amber-900/20 p-6 space-y-4">
-    <p class="text-amber-100 leading-relaxed">{result}</p>
-    <button
-      onclick={copyToClipboard}
-      class="text-sm text-amber-400 hover:text-amber-300 transition"
-    >
-      {#if copied}
-        Copiado!
-      {:else}
-        Copiar al clipboard
-      {/if}
-    </button>
+{:else if exaggerations}
+  <div class="space-y-3">
+    <div class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+      {#each tabs as tab (tab.key)}
+        {@const isActive = tab.key === activeTab}
+        <button
+          type="button"
+          onclick={() => (activeTab = tab.key)}
+          class="shrink-0 flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition border {isActive
+            ? 'bg-amber-500 border-amber-500 text-gray-900'
+            : 'bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-500'}"
+        >
+          <span>{tab.label}</span>
+          <span
+            class="rounded-full px-2 py-0.5 text-xs font-semibold {isActive
+              ? 'bg-gray-900/20 text-gray-900'
+              : 'bg-gray-700 text-gray-400'}"
+          >
+            {tab.level}/10
+          </span>
+        </button>
+      {/each}
+    </div>
+
+    <div class="rounded-xl border border-amber-700 bg-amber-900/20 p-6 space-y-4">
+      <p class="text-amber-100 leading-relaxed">{activeText}</p>
+      <button
+        onclick={copyToClipboard}
+        class="text-sm text-amber-400 hover:text-amber-300 transition"
+      >
+        {#if copied}
+          Copiado!
+        {:else}
+          Copiar al clipboard
+        {/if}
+      </button>
+    </div>
   </div>
 {/if}
