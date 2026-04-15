@@ -1,0 +1,14 @@
+{
+  "name": "usopp-cv",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "npm -C client run dev",
+    "dev:server": "npm -C server run dev",
+    "build": "npm -C client run build && npm -C server run build",
+    "typecheck": "npm -C client run check && npm -C server run typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
